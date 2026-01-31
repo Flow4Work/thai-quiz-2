@@ -1,86 +1,134 @@
 export type CategoryId = 'flirt_words' | 'flirt_lines' | 'reactions';
 
-export type ContentItem = {
-  id: string;
-  emoji: string;
-  /** Korean-friendly pronunciation (hangul) */
-  pronKr: string;
-  /** Korean meaning shown to the user */
-  meaningKr: string;
-  /** Optional Thai script (user prefers pronunciation-only; keep empty by default) */
-  thai?: string;
-  /** Optional romanization (tiny hint) */
-  roman?: string;
-};
-
 export type Category = {
   id: CategoryId;
   title: string;
   subtitle: string;
-  emoji: string;
-  items: ContentItem[];
+  icon: string;
+  accent: string; // tailwind color class
 };
 
-/**
- * NOTE
- * - The user wants pronunciation-focused learning (hangul/roman), not Thai letters.
- * - Thai script is intentionally kept empty for these items.
- */
+export type ContentItem = {
+  id: string;
+  type: 'word' | 'sentence';
+  meaningKr: string;
+  thai?: string;
+  roman: string;
+  pronKr: string;
+  notes?: string;
+};
+
 export const CATEGORIES: Category[] = [
   {
     id: 'flirt_words',
     title: '플러팅 핵심 단어',
     subtitle: '좋아/싫어/끌려… 감정 단어부터 빠르게',
-    emoji: '💘',
-    items: [
-      // ---- Subject / verb blocks (minimal) ----
-      { id: 'subj_i', emoji: '🙋', pronKr: '찬', meaningKr: '나(=I)', thai: '', roman: 'chan' },
-      { id: 'subj_you', emoji: '👉', pronKr: '터', meaningKr: '너(=you)', thai: '', roman: 'ter' },
-      { id: 'verb_like', emoji: '❤️', pronKr: '촙', meaningKr: '좋아(좋아하다)', thai: '', roman: 'chop' },
-      { id: 'verb_not_like', emoji: '🙅', pronKr: '마이 촙', meaningKr: '싫어(=안 좋아해)', thai: '', roman: 'mai chop' },
-      { id: 'why', emoji: '❓', pronKr: '탐마이', meaningKr: '왜?', thai: '', roman: 'tham-mai' },
-
-      // ---- Feelings / adjectives ----
-      { id: 'attracted', emoji: '🧲', pronKr: '툭 짜이', meaningKr: '끌려 / 취향저격', thai: '', roman: 'thuuk jai' },
-      { id: 'pretty', emoji: '✨', pronKr: '쑤아이', meaningKr: '예쁘다', thai: '', roman: 'suay' },
-      { id: 'sexy', emoji: '🔥', pronKr: '섹씨', meaningKr: '섹시하다', thai: '', roman: 'sexy' },
-      { id: 'flutter', emoji: '💓', pronKr: '뜬뗀', meaningKr: '설렌다 / 두근거린다', thai: '', roman: 'tuen ten' },
-
-      // jealousy (question & statement)
-      { id: 'jealous_q', emoji: '😏', pronKr: '흥 러?', meaningKr: '질투해?', thai: '', roman: 'heung ...' },
-      { id: 'jealous_s', emoji: '😤', pronKr: '찬 흥 나', meaningKr: '질투난다', thai: '', roman: 'chan heung na' },
-
-      // 기대된다 (keep simple: excited / looking forward)
-      { id: 'looking_forward', emoji: '⏳', pronKr: '뜬뗀', meaningKr: '기대된다(=설레/기대돼)', thai: '', roman: 'tuen ten' },
-    ],
+    icon: '🪄',
+    accent: 'from-sky-500 to-blue-600',
   },
   {
     id: 'flirt_lines',
     title: '같이 있을 때 한마디',
-    subtitle: '짧고 바로 써먹는 문장만',
-    emoji: '🫶',
-    items: [
-      { id: 'next_to_you_good', emoji: '🙂', pronKr: '유 캉 캉 터 래우 디 짱', meaningKr: '너 옆에 있으니까 좋다', thai: '', roman: 'yuu khaang-khaang ter laew dii jang' },
-      { id: 'your_smile_good', emoji: '😊', pronKr: '터 임 래우 디', meaningKr: '너 웃는 거 좋다', thai: '', roman: 'ter yim laew dii' },
-      { id: 'i_like_your_smile', emoji: '😁', pronKr: '촙 웰라 터 임', meaningKr: '너 웃는 거 좋아', thai: '', roman: 'chop welaa ter yim' },
-      { id: 'with_you_good', emoji: '🤍', pronKr: '유 갑 터 래우 디', meaningKr: '너랑 있으면 좋아', thai: '', roman: 'yuu gap ter laew dii' },
-
-      { id: 'want_hug', emoji: '🤗', pronKr: '약 껏', meaningKr: '안고 싶다', thai: '', roman: 'yaak gɔ̀ɔt' },
-      { id: 'want_kiss', emoji: '💋', pronKr: '약 쭙', meaningKr: '키스하고 싶다', thai: '', roman: 'yaak juup' },
-      { id: 'cant_resist', emoji: '🫠', pronKr: '유 끌라이 터 래우 찬 옫 마이 다이', meaningKr: '너 옆에 있으면 참을 수 없어', thai: '', roman: 'yuu glai ter laew chan ot mai dai' },
-      { id: 'danger_vibe', emoji: '⚠️', pronKr: '완니 반야깟 안뜨라이 나?', meaningKr: '오늘 분위기 위험한데?', thai: '', roman: 'wan-nii banyaagaat an-traai na?' },
-    ],
+    subtitle: '짧고 바로 써먹는 문장',
+    icon: '🤝',
+    accent: 'from-indigo-500 to-purple-600',
   },
   {
     id: 'reactions',
     title: '감정 리액션',
     subtitle: '짧게 내 감정만 바로 꺼내기 (중요)',
-    emoji: '🎭',
-    items: [
-      { id: 'happy', emoji: '😄', pronKr: '찬 디짜이!', meaningKr: '나 기뻐!', thai: '', roman: 'chan dii-jai' },
-      { id: 'lol', emoji: '🤣', pronKr: '찬 캄 러이!', meaningKr: '나 웃겨!', thai: '', roman: 'chan kham loei' },
-      { id: 'excited', emoji: '😳', pronKr: '뜬뗀…', meaningKr: '설렌다.', thai: '', roman: 'tuen ten' },
-      { id: 'shy', emoji: '🙈', pronKr: '아이…', meaningKr: '부끄럽다.', thai: '', roman: 'ai' },
-    ],
+    icon: '🎭',
+    accent: 'from-pink-500 to-rose-600',
   },
 ];
+
+export const CONTENT: Record<CategoryId, ContentItem[]> = {
+  flirt_words: [
+    { id: 'fw_like', type: 'word', meaningKr: '좋아', thai: 'ชอบ', roman: 'chɔ̂ɔp', pronKr: '촙' },
+    { id: 'fw_dislike', type: 'word', meaningKr: '싫어', thai: 'ไม่ชอบ', roman: 'mâi chɔ̂ɔp', pronKr: '마이 촙' },
+    { id: 'fw_attracted', type: 'word', meaningKr: '끌려', thai: 'ดึงดูด', roman: 'deung-dùut', pronKr: '등둣' },
+    { id: 'fw_pretty', type: 'word', meaningKr: '예쁘다', thai: 'สวย', roman: 'sǔai', pronKr: '쑤아이' },
+    { id: 'fw_sexy', type: 'word', meaningKr: '섹시하다', thai: 'เซ็กซี่', roman: 'sék-sîi', pronKr: '섹-씨' },
+    { id: 'fw_flutter', type: 'word', meaningKr: '설렌다', thai: 'ใจสั่น', roman: 'jai sàn', pronKr: '짜이 싼' },
+    { id: 'fw_heartbeat', type: 'word', meaningKr: '두근거린다', thai: 'ใจเต้นแรง', roman: 'jai têen rɛɛng', pronKr: '짜이 뗀 랭' },
+    { id: 'fw_jealous_q', type: 'word', meaningKr: '질투나?', thai: 'หึงเหรอ?', roman: 'hǔeng řə̌ə?', pronKr: '흥 러?' },
+    { id: 'fw_jealous', type: 'word', meaningKr: '질투난다', thai: 'หึง', roman: 'hǔeng', pronKr: '흥' },
+    { id: 'fw_excited', type: 'word', meaningKr: '기대된다', thai: 'ตื่นเต้น', roman: 'tùuen-tên', pronKr: '뜬-뗀' },
+    { id: 'fw_why', type: 'word', meaningKr: '왜?', thai: 'ทำไม?', roman: 'tham-mai?', pronKr: '탐마이?' },
+  ],
+
+  flirt_lines: [
+    {
+      id: 'fl_beside_good',
+      type: 'sentence',
+      meaningKr: '너 옆에 있으니까 좋다',
+      thai: 'อยู่ข้างเธอแล้วดี',
+      roman: 'yùu khâang thə̌ə lɛ́ɛo dii',
+      pronKr: '유 캉 터 레오 디',
+      notes: '옆에 있어 좋다(자연스러운 플러팅)',
+    },
+    {
+      id: 'fl_smile_like1',
+      type: 'sentence',
+      meaningKr: '너 웃는 거 좋다',
+      thai: 'ชอบเวลาเธอยิ้ม',
+      roman: 'chɔ̂ɔp wee-laa thə̌ə yím',
+      pronKr: '촙 웰라 터 윔',
+    },
+    {
+      id: 'fl_smile_like2',
+      type: 'sentence',
+      meaningKr: '너 웃는 거 좋아',
+      thai: 'ชอบเธอยิ้ม',
+      roman: 'chɔ̂ɔp thə̌ə yím',
+      pronKr: '촙 터 윔',
+    },
+    {
+      id: 'fl_with_you_good',
+      type: 'sentence',
+      meaningKr: '너랑 있으면 좋아',
+      thai: 'อยู่กับเธอแล้วดี',
+      roman: 'yùu kàp thə̌ə lɛ́ɛo dii',
+      pronKr: '유 갑 터 레오 디',
+    },
+    {
+      id: 'fl_hug_want',
+      type: 'sentence',
+      meaningKr: '안고 싶다',
+      thai: 'อยากกอด',
+      roman: 'yàak gɔ̀ɔt',
+      pronKr: '약 껏(드)',
+    },
+    {
+      id: 'fl_kiss_want',
+      type: 'sentence',
+      meaningKr: '키스하고 싶다',
+      thai: 'อยากจูบ',
+      roman: 'yàak jùup',
+      pronKr: '약 쭙',
+    },
+    {
+      id: 'fl_cant_hold',
+      type: 'sentence',
+      meaningKr: '너 옆에 있으면 참을 수 없어',
+      thai: 'อยู่ข้างเธอแล้วทนไม่ไหว',
+      roman: 'yùu khâang thə̌ə lɛ́ɛo thon mâi wǎi',
+      pronKr: '유 캉 터 레오 톤 마이 와이',
+    },
+    {
+      id: 'fl_today_danger',
+      type: 'sentence',
+      meaningKr: '오늘 분위기 위험한데?',
+      thai: 'วันนี้บรรยากาศอันตรายนะ?',
+      roman: 'wan-níi ban-yaa-gàat an-dtraai ná?',
+      pronKr: '완니 반야갓 안뜨라이 나?',
+    },
+  ],
+
+  reactions: [
+    { id: 're_happy', type: 'sentence', meaningKr: '나 기뻐!', thai: 'ดีใจ!', roman: 'dii-jai!', pronKr: '디-짜이!' },
+    { id: 're_funny', type: 'sentence', meaningKr: '나 웃겨!', thai: 'ตลก!', roman: 'dtà-lòk!', pronKr: '딸록!' },
+    { id: 're_flutter', type: 'sentence', meaningKr: '설렌다.', thai: 'ใจสั่น.', roman: 'jai sàn.', pronKr: '짜이 싼.' },
+    { id: 're_shy', type: 'sentence', meaningKr: '부끄럽다.', thai: 'เขิน.', roman: 'khə̌ən.', pronKr: '컨.' },
+  ],
+};
