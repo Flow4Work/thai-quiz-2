@@ -7,24 +7,28 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'Thai quiz 2',
-        short_name: 'ThaiQuiz2',
-        description: 'Offline-first Thai quiz app (Toss-style UI)',
-        theme_color: '#101012',
-        background_color: '#101012',
+        name: 'Thai Quiz',
+        short_name: 'ThaiQuiz',
+        description: 'Thai pronunciation quiz (KR choices) — flirting & reactions',
+        theme_color: '#1b1d23',
+        background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/',
         scope: '/',
+        start_url: '/',
         icons: [
-          { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' }
+          {
+            src: 'pwa-192.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: 'pwa-512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          }
         ]
-      },
-      workbox: {
-        // 핵심: 오프라인에서 새 탭/새로고침도 index.html로 fallback
-        navigateFallback: '/index.html',
-        globPatterns: ['**/*.{js,css,html,png,svg,ico,woff2}']
       }
     })
   ]
