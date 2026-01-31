@@ -1,416 +1,472 @@
-import { useMemo, useState } from "react";
-import { QUESTIONS, type Question } from "./data/questions";
+import React, { useMemo, useState } from 'react';
+import { CATEGORIES, Category, CategoryId, SentenceItem, WordItem } from './data/content';
 
-type Mode = "meaning_to_pron" | "pron_to_meaning";
+type Screen =
+  | { name: 'home' }
+  | { name: 'words'; categoryId: CategoryId; index: number }
+  | { name: 'sentences'; categoryId: CategoryId }
+  | { name: 'quiz'; categoryId: CategoryId; qIndex: number; locked?: boolean; picked?: string }
+  | { name: 'done'; categoryId: CategoryId };
 
-type QuizItem = {
-  q: Question;
-  mode: Mode;
-  choices: string[];
-  answer: string;
-};
-
-function shuffle<T>(arr: T[]) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+function cx(...cls: Array<string | false | undefined | null>) {
+  return cls.filter(Boolean).join(' ');
 }
 
-function sample<T>(arr: T[], n: number) {
-  return shuffle(arr).slice(0, n);
+function clamp(n: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, n));
 }
 
-function buildQuizItems(
-  pool: Question[],
-  mode: Mode,
-  count: number
-): QuizItem[] {
-  const pronPool = pool.map((x) => x.pronKr);
-  const items = sample(pool, Math.min(count, pool.length)).map((q) => {
-    const answer = mode === "meaning_to_pron" ? q.pronKr : q.meaningKr;
-
-    const distractorSource =
-      mode === "meaning_to_pron"
-        ? pronPool.filter((p) => p !== q.pronKr)
-        : pool.map((x) => x.meaningKr).filter((m) => m !== q.meaningKr);
-
-    const distractors = sample(distractorSource, 3);
-    const choices = shuffle([answer, ...distractors]);
-
-    return { q, mode, choices, answer };
-  });
-
-  return items;
+function useCategory(categoryId: CategoryId): Category {
+  const cat = CATEGORIES.find((c) => c.id === categoryId);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  return cat!;
 }
 
-function Pill({
-  active,
+function TopBar({
+  onClose,
+  progress,
+}: {
+  onClose?: () => void;
+  /** 0..1 */
+  progress?: number;
+}) {
+  return (
+    <div className="pt-4">
+      <div className="flex items-center justify-between px-5">
+        <button
+          onClick={onClose}
+          className="h-9 w-9 rounded-full bg-white/5 text-white/70 hover:bg-white/10"
+          aria-label="닫기"
+        >
+          ✕
+        </button>
+        <div className="w-40" />
+      </div>
+      <div className="mt-4 px-5">
+        <div className="h-1 w-full rounded-full bg-white/10">
+          <div
+            className="h-1 rounded-full bg-[#3B82F6] transition-all"
+            style={{ width: `${Math.round(clamp((progress ?? 0) * 100, 0, 100))}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PrimaryButton({
   children,
   onClick,
+  disabled,
 }: {
-  active: boolean;
   children: React.ReactNode;
-  onClick: () => void;
+  onClick?: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      className={[
-        "px-3 py-1.5 rounded-full border text-sm transition",
-        active
-          ? "bg-white text-black border-white"
-          : "bg-black/30 text-white/80 border-white/15 hover:border-white/35 hover:text-white",
-      ].join(" ")}
+      disabled={disabled}
+      className={cx(
+        'w-full rounded-2xl px-6 py-4 text-base font-semibold',
+        'bg-[#3B82F6] text-white shadow-[0_12px_40px_rgba(59,130,246,0.25)]',
+        'active:scale-[0.99] transition',
+        disabled && 'opacity-60'
+      )}
     >
       {children}
     </button>
   );
 }
 
-export default function App() {
-  const [step, setStep] = useState<"setup" | "quiz" | "result">("setup");
-  const [mode, setMode] = useState<Mode>("meaning_to_pron");
-  const [tag, setTag] = useState<
-    "all" | "general" | "transport" | "hotel" | "shopping" | "flirt"
-  >("all");
-  const [count, setCount] = useState<number>(20);
+function GhostPill({
+  children,
+  active,
+  onClick,
+}: {
+  children: React.ReactNode;
+  active?: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cx(
+        'rounded-full px-3 py-1.5 text-sm font-semibold transition',
+        active
+          ? 'bg-white text-black'
+          : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
+      )}
+    >
+      {children}
+    </button>
+  );
+}
 
-  const filtered = useMemo(() => {
-    if (tag === "all") return QUESTIONS;
-    return QUESTIONS.filter((q) => q.tags.includes(tag));
-  }, [tag]);
+function GlassCard({
+  children,
+  onClick,
+  className,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cx(
+        'w-full text-left rounded-3xl px-5 py-4',
+        'bg-white/[0.06] border border-white/10',
+        'shadow-[0_20px_60px_rgba(0,0,0,0.45)]',
+        'hover:bg-white/[0.08] transition',
+        className
+      )}
+    >
+      {children}
+    </button>
+  );
+}
 
-  const [items, setItems] = useState<QuizItem[]>([]);
-  const [idx, setIdx] = useState(0);
+function HomeScreen({
+  onPick,
+  completed,
+}: {
+  onPick: (id: CategoryId) => void;
+  completed: Record<CategoryId, boolean>;
+}) {
+  const doneCount = Object.values(completed).filter(Boolean).length;
+  return (
+    <div className="px-5 pb-10 pt-10">
+      <div className="inline-flex items-center gap-2 rounded-full bg-[#0B2B57] px-3 py-1 text-xs font-semibold text-[#93C5FD]">
+        태국어 마스터
+      </div>
+      <h1 className="mt-4 text-3xl font-extrabold leading-tight text-white">
+        태국어,
+        <br />
+        어렵지 않아요.
+      </h1>
+      <p className="mt-2 text-sm text-white/55">이모지로 쉽게 연상하며 배워보세요.</p>
+
+      <div className="mt-8 flex items-center justify-between">
+        <div className="text-sm font-semibold text-white/55">학습 레벨</div>
+        <div className="text-sm font-semibold text-[#60A5FA]">{doneCount}/3</div>
+      </div>
+
+      <div className="mt-4 grid gap-4">
+        {CATEGORIES.map((c) => (
+          <GlassCard key={c.id} onClick={() => onPick(c.id)}>
+            <div className="flex items-center gap-4">
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/5 text-2xl">
+                {c.emoji}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <div className="text-base font-extrabold text-white">{c.title}</div>
+                  {completed[c.id] ? (
+                    <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-300">
+                      완료
+                    </span>
+                  ) : null}
+                </div>
+                <div className="mt-0.5 text-xs text-white/50">{c.subtitle}</div>
+              </div>
+            </div>
+          </GlassCard>
+        ))}
+      </div>
+
+      <div className="mt-8 text-center text-[10px] tracking-[0.22em] text-white/25">
+        BUILT WITH TOSS STYLE UX
+      </div>
+    </div>
+  );
+}
+
+function WordScreen({
+  category,
+  word,
+  index,
+  total,
+  onNext,
+  onClose,
+}: {
+  category: Category;
+  word: WordItem;
+  index: number;
+  total: number;
+  onNext: () => void;
+  onClose: () => void;
+}) {
+  const progress = (index + 1) / (total + 2); // leave room for later steps
+  return (
+    <div className="min-h-[100dvh]">
+      <TopBar onClose={onClose} progress={progress} />
+      <div className="px-5 pb-10 pt-12 text-center">
+        <div className="mx-auto grid h-24 w-24 place-items-center rounded-[28px] bg-white/5 text-5xl">
+          {word.emoji}
+        </div>
+        <div className="mt-6 text-xs font-semibold text-[#60A5FA]">발음</div>
+        <div className="mt-1 text-5xl font-extrabold tracking-tight text-white">{word.pronKr}</div>
+
+        <div className="mt-6 text-xl font-extrabold text-white">{word.meaningKr}</div>
+        <div className="mt-2 text-sm text-white/30">
+          {word.thai ? <span className="mr-2">{word.thai}</span> : null}
+          {word.roman ? <span className="">{word.roman}</span> : null}
+        </div>
+
+        <div className="mt-10">
+          <PrimaryButton onClick={onNext}>{index + 1 < total ? '다음 단어' : '한 문장 더!'}</PrimaryButton>
+        </div>
+      </div>
+      <div className="px-5 pb-6 text-center text-xs text-white/30">{category.title}</div>
+    </div>
+  );
+}
+
+function SentenceScreen({
+  category,
+  onStartQuiz,
+  onClose,
+}: {
+  category: Category;
+  onStartQuiz: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="min-h-[100dvh]">
+      <TopBar onClose={onClose} progress={0.78} />
+
+      <div className="px-5 pb-10 pt-10">
+        <div className="text-2xl font-extrabold text-white">한 문장 더! 💬</div>
+        <div className="mt-1 text-sm text-white/45">배운 단어를 이렇게 사용해보세요.</div>
+
+        <div className="mt-6 grid gap-4">
+          {category.sentences.slice(0, 3).map((s) => (
+            <div
+              key={s.id}
+              className="rounded-3xl bg-white/[0.06] border border-white/10 px-5 py-4"
+            >
+              <div className="text-lg font-extrabold text-[#60A5FA]">{s.pronKr}</div>
+              <div className="mt-1 text-base font-semibold text-white">{s.meaningKr}</div>
+              {s.roman ? <div className="mt-2 text-xs text-white/30">{s.roman}</div> : null}
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-8">
+          <PrimaryButton onClick={onStartQuiz}>학습 확인 퀴즈</PrimaryButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function buildQuizFromCategory(category: Category) {
+  // We ask: meaning -> pick correct pronKr
+  return category.words.map((w) => {
+    const distractors = category.words
+      .filter((x) => x.id !== w.id)
+      .map((x) => x.pronKr);
+    const pool = Array.from(new Set(distractors)).slice(0, 3);
+    while (pool.length < 3) pool.push('...');
+    const options = [w.pronKr, ...pool]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 4);
+    return {
+      id: w.id,
+      meaningKr: w.meaningKr,
+      correct: w.pronKr,
+      options,
+    };
+  });
+}
+
+function QuizScreen({
+  category,
+  qIndex,
+  onClose,
+  onNext,
+  onDone,
+}: {
+  category: Category;
+  qIndex: number;
+  onClose: () => void;
+  onNext: (isLast: boolean) => void;
+  onDone: () => void;
+}) {
+  const quiz = useMemo(() => buildQuizFromCategory(category), [category]);
+  const q = quiz[qIndex];
+  const total = quiz.length;
   const [picked, setPicked] = useState<string | null>(null);
-  const [correct, setCorrect] = useState<boolean | null>(null);
-  const [score, setScore] = useState(0);
-  const [wrong, setWrong] = useState<
-    { q: Question; your: string; ans: string; mode: Mode }[]
-  >([]);
+  const locked = picked !== null;
 
-  const current = items[idx];
+  const progress = 0.78 + (qIndex + 1) * (0.22 / total);
 
-  function start() {
-    const built = buildQuizItems(filtered, mode, count);
-    setItems(built);
-    setIdx(0);
-    setPicked(null);
-    setCorrect(null);
-    setScore(0);
-    setWrong([]);
-    setStep("quiz");
+  function pick(opt: string) {
+    if (locked) return;
+    setPicked(opt);
   }
 
-  function choose(choice: string) {
-    if (!current || picked) return;
-    setPicked(choice);
-    const ok = choice === current.answer;
-    setCorrect(ok);
-    if (ok) setScore((s) => s + 1);
-    else
-      setWrong((w) => [
-        ...w,
-        { q: current.q, your: choice, ans: current.answer, mode: current.mode },
-      ]);
-  }
-
-  function next() {
-    setPicked(null);
-    setCorrect(null);
-    if (idx + 1 >= items.length) setStep("result");
-    else setIdx((i) => i + 1);
-  }
-
-  function restart() {
-    setStep("setup");
-  }
-
-  const total = items.length || 0;
-  const progress = total ? Math.round(((idx + 1) / total) * 100) : 0;
+  const isCorrect = picked === q.correct;
 
   return (
-    <div className="min-h-screen bg-[#0b0f14] text-white">
-      <div className="mx-auto max-w-3xl px-5 py-8">
-        <header className="flex items-center justify-between">
-          <div>
-            <div className="text-xs tracking-widest text-white/50">OFFLINE PWA</div>
-            <h1 className="text-2xl font-semibold leading-tight">
-              Thai quiz 2
-            </h1>
-            <p className="text-sm text-white/60 mt-1">
-              한국어 뜻 ↔ 발음(한글) 퀴즈로 “입으로” 외우는 용도.
-            </p>
-          </div>
-          <div className="text-xs text-white/50 text-right">
-            <div>vercel / vite</div>
-            <div className="mt-1">
-              {step === "quiz" ? `${idx + 1}/${total}` : ""}
-            </div>
-          </div>
-        </header>
+    <div className="min-h-[100dvh]">
+      <TopBar onClose={onClose} progress={progress} />
 
-        {step === "setup" && (
-          <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5">
-            <div className="flex flex-col gap-6">
-              <section>
-                <div className="text-sm text-white/70 mb-2">퀴즈 모드</div>
-                <div className="flex flex-wrap gap-2">
-                  <Pill
-                    active={mode === "meaning_to_pron"}
-                    onClick={() => setMode("meaning_to_pron")}
-                  >
-                    뜻 → 발음 고르기
-                  </Pill>
-                  <Pill
-                    active={mode === "pron_to_meaning"}
-                    onClick={() => setMode("pron_to_meaning")}
-                  >
-                    발음 → 뜻 고르기
-                  </Pill>
-                </div>
-              </section>
+      <div className="px-5 pb-12 pt-14 text-center">
+        <div className="text-4xl">🥺</div>
+        <div className="mt-3 text-sm font-semibold text-white/50">이 뜻의 발음은?</div>
+        <div className="mt-1 text-4xl font-extrabold text-white">{q.meaningKr}</div>
 
-              <section>
-                <div className="text-sm text-white/70 mb-2">카테고리</div>
-                <div className="flex flex-wrap gap-2">
-                  {(
-                    [
-                      ["all", "전체"],
-                      ["general", "기본"],
-                      ["transport", "이동"],
-                      ["hotel", "호텔"],
-                      ["shopping", "쇼핑"],
-                      ["flirt", "칭찬/가벼운 플러팅"],
-                    ] as const
-                  ).map(([k, label]) => (
-                    <Pill
-                      key={k}
-                      active={tag === k}
-                      onClick={() => setTag(k)}
-                    >
-                      {label}
-                    </Pill>
-                  ))}
-                </div>
-                <div className="mt-2 text-xs text-white/45">
-                  현재 {filtered.length}개 문장/단어
-                </div>
-              </section>
+        <div className="mt-8 grid gap-3">
+          {q.options.map((opt) => {
+            const correct = opt === q.correct;
+            const chosen = opt === picked;
+            const showCorrect = locked && correct;
+            const showWrong = locked && chosen && !correct;
 
-              <section className="flex items-center gap-3">
-                <div className="text-sm text-white/70">문제 수</div>
-                <input
-                  className="w-24 rounded-lg bg-black/30 border border-white/15 px-3 py-2 text-sm outline-none focus:border-white/35"
-                  type="number"
-                  min={5}
-                  max={Math.max(5, filtered.length)}
-                  value={count}
-                  onChange={(e) => setCount(Number(e.target.value || 0))}
-                />
-                <div className="text-xs text-white/45">
-                  (최대 {filtered.length})
-                </div>
-              </section>
-
+            return (
               <button
-                onClick={start}
-                disabled={filtered.length === 0}
-                className="rounded-xl bg-white text-black font-medium px-4 py-3 hover:bg-white/90 disabled:opacity-50"
+                key={opt}
+                onClick={() => pick(opt)}
+                className={cx(
+                  'w-full rounded-2xl px-5 py-4 text-left text-base font-extrabold transition',
+                  'bg-white/[0.06] border border-white/10',
+                  'hover:bg-white/[0.08]',
+                  showCorrect && 'border-emerald-400/70 bg-emerald-500/10 text-emerald-200',
+                  showWrong && 'border-rose-400/70 bg-rose-500/10 text-rose-200'
+                )}
               >
-                시작하기
+                <div className="flex items-center justify-between">
+                  <span>{opt}</span>
+                  {showCorrect ? <span className="text-emerald-300">✓</span> : null}
+                  {showWrong ? <span className="text-rose-300">✕</span> : null}
+                </div>
               </button>
+            );
+          })}
+        </div>
 
-              <div className="text-xs text-white/45 leading-relaxed">
-                팁: 옵션(발음)은 “한글 표기”로만 나옵니다. 태국어 글자는 힌트로
-                작게 표시돼요. (원하면 아예 숨기는 토글도 나중에 추가 가능)
-              </div>
-            </div>
+        <div className="mt-8">
+          {locked ? (
+            <PrimaryButton
+              onClick={() => {
+                setPicked(null);
+                if (qIndex + 1 >= total) {
+                  onDone();
+                  return;
+                }
+                onNext(qIndex + 1 >= total - 1);
+              }}
+            >
+              {qIndex + 1 >= total ? '완료' : '다음'}
+            </PrimaryButton>
+          ) : (
+            <PrimaryButton disabled>정답을 선택하세요</PrimaryButton>
+          )}
+        </div>
+
+        {locked ? (
+          <div className={cx('mt-6 text-sm font-extrabold', isCorrect ? 'text-emerald-300' : 'text-rose-300')}>
+            {isCorrect ? '정답! 🔥' : `아쉬워요! ${q.correct}`}
           </div>
-        )}
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
-        {step === "quiz" && current && (
-          <div className="mt-8">
-            <div className="h-2 w-full rounded-full bg-white/10 overflow-hidden">
-              <div
-                className="h-full bg-white/60"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
+function DoneScreen({ category, onHome }: { category: Category; onHome: () => void }) {
+  return (
+    <div className="min-h-[100dvh] px-5 pb-12 pt-16 text-center">
+      <div className="mx-auto grid h-20 w-20 place-items-center rounded-[26px] bg-emerald-500/10 text-4xl">
+        ✅
+      </div>
+      <div className="mt-6 text-2xl font-extrabold text-white">완료!</div>
+      <div className="mt-2 text-sm text-white/50">{category.title} 학습을 마쳤어요.</div>
 
-            <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="text-xs text-white/50">
-                    {mode === "meaning_to_pron"
-                      ? "뜻 → 발음"
-                      : "발음 → 뜻"}
-                  </div>
+      <div className="mt-10">
+        <PrimaryButton onClick={onHome}>홈으로</PrimaryButton>
+      </div>
+    </div>
+  );
+}
 
-                  {mode === "meaning_to_pron" ? (
-                    <>
-                      <div className="mt-2 text-3xl font-semibold tracking-tight">
-                        {current.q.meaningKr}
-                      </div>
-                      <div className="mt-3 text-sm text-white/55">
-                        <span className="font-medium text-white/70">
-                          {current.q.thai}
-                        </span>{" "}
-                        · {current.q.roman}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="mt-2 text-3xl font-semibold tracking-tight">
-                        {current.q.pronKr}
-                      </div>
-                      <div className="mt-3 text-sm text-white/55">
-                        <span className="font-medium text-white/70">
-                          {current.q.thai}
-                        </span>{" "}
-                        · {current.q.roman}
-                      </div>
-                    </>
-                  )}
-                </div>
+export default function App() {
+  const [completed, setCompleted] = useState<Record<CategoryId, boolean>>({
+    feelings: false,
+    food: false,
+    manners: false,
+  });
+  const [screen, setScreen] = useState<Screen>({ name: 'home' });
 
-                <div className="text-right">
-                  <div className="text-xs text-white/50">점수</div>
-                  <div className="text-2xl font-semibold">{score}</div>
-                </div>
-              </div>
+  const activeCategory =
+    screen.name === 'home' ? null : useCategory((screen as Exclude<Screen, { name: 'home' }>).categoryId);
 
-              <div className="mt-6 grid grid-cols-1 gap-3">
-                {current.choices.map((c) => {
-                  const isPicked = picked === c;
-                  const isAnswer = c === current.answer;
+  return (
+    <div className="min-h-[100dvh] bg-[#050A12] text-white">
+      {/* Mobile-first frame */}
+      <div className="mx-auto min-h-[100dvh] max-w-[460px]">
+        {screen.name === 'home' ? (
+          <HomeScreen
+            completed={completed}
+            onPick={(id) => setScreen({ name: 'words', categoryId: id, index: 0 })}
+          />
+        ) : null}
 
-                  const state =
-                    picked == null
-                      ? "idle"
-                      : isAnswer
-                      ? "answer"
-                      : isPicked
-                      ? "wrong"
-                      : "idle";
+        {screen.name === 'words' && activeCategory ? (
+          <WordScreen
+            category={activeCategory}
+            word={activeCategory.words[screen.index]}
+            index={screen.index}
+            total={activeCategory.words.length}
+            onClose={() => setScreen({ name: 'home' })}
+            onNext={() => {
+              const next = screen.index + 1;
+              if (next >= activeCategory.words.length) {
+                setScreen({ name: 'sentences', categoryId: activeCategory.id });
+              } else {
+                setScreen({ name: 'words', categoryId: activeCategory.id, index: next });
+              }
+            }}
+          />
+        ) : null}
 
-                  const cls =
-                    state === "answer"
-                      ? "border-emerald-400/60 bg-emerald-400/10"
-                      : state === "wrong"
-                      ? "border-rose-400/60 bg-rose-400/10"
-                      : "border-white/12 bg-black/20 hover:border-white/30";
+        {screen.name === 'sentences' && activeCategory ? (
+          <SentenceScreen
+            category={activeCategory}
+            onClose={() => setScreen({ name: 'home' })}
+            onStartQuiz={() => setScreen({ name: 'quiz', categoryId: activeCategory.id, qIndex: 0 })}
+          />
+        ) : null}
 
-                  return (
-                    <button
-                      key={c}
-                      onClick={() => choose(c)}
-                      className={[
-                        "text-left rounded-xl border px-4 py-3 transition",
-                        cls,
-                      ].join(" ")}
-                    >
-                      <div className="text-lg font-medium">
-                        {c}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+        {screen.name === 'quiz' && activeCategory ? (
+          <QuizScreen
+            category={activeCategory}
+            qIndex={screen.qIndex}
+            onClose={() => setScreen({ name: 'home' })}
+            onNext={() => setScreen({ name: 'quiz', categoryId: activeCategory.id, qIndex: screen.qIndex + 1 })}
+            onDone={() => {
+              setCompleted((p) => ({ ...p, [activeCategory.id]: true }));
+              setScreen({ name: 'done', categoryId: activeCategory.id });
+            }}
+          />
+        ) : null}
 
-              <div className="mt-5 flex items-center justify-between">
-                <div className="text-sm text-white/60">
-                  {picked ? (
-                    correct ? (
-                      <span className="text-emerald-300">정답 ✅</span>
-                    ) : (
-                      <span className="text-rose-300">
-                        오답 ❌ (정답: {current.answer})
-                      </span>
-                    )
-                  ) : (
-                    "선택하세요"
-                  )}
-                </div>
+        {screen.name === 'done' && activeCategory ? (
+          <DoneScreen
+            category={activeCategory}
+            onHome={() => {
+              setScreen({ name: 'home' });
+            }}
+          />
+        ) : null}
+      </div>
 
-                <button
-                  onClick={next}
-                  disabled={!picked}
-                  className="rounded-xl bg-white text-black font-medium px-4 py-2.5 hover:bg-white/90 disabled:opacity-50"
-                >
-                  다음
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-3 text-xs text-white/45">
-              * 발음 표기는 학습용 “한국어 표기”라서 사람마다 다르게 느낄 수 있어요.
-            </div>
-          </div>
-        )}
-
-        {step === "result" && (
-          <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs text-white/50">결과</div>
-                <div className="mt-1 text-3xl font-semibold">
-                  {score} / {total}
-                </div>
-                <div className="mt-2 text-sm text-white/60">
-                  오답 {wrong.length}개
-                </div>
-              </div>
-              <button
-                onClick={restart}
-                className="rounded-xl bg-white text-black font-medium px-4 py-2.5 hover:bg-white/90"
-              >
-                다시 하기
-              </button>
-            </div>
-
-            {wrong.length > 0 && (
-              <div className="mt-6">
-                <div className="text-sm text-white/75 mb-2">오답 노트</div>
-                <div className="grid grid-cols-1 gap-3">
-                  {wrong.slice(-30).reverse().map((w, i) => (
-                    <div
-                      key={i}
-                      className="rounded-xl border border-white/10 bg-black/20 p-4"
-                    >
-                      <div className="text-xs text-white/50">
-                        {w.q.thai} · {w.q.roman}
-                      </div>
-                      <div className="mt-1 text-lg font-semibold">
-                        {w.mode === "meaning_to_pron" ? w.q.meaningKr : w.q.pronKr}
-                      </div>
-                      <div className="mt-2 text-sm text-white/70">
-                        내 답: <span className="text-rose-300">{w.your}</span>
-                        {"  "} / 정답:{" "}
-                        <span className="text-emerald-300">{w.ans}</span>
-                      </div>
-                      <div className="mt-2 text-xs text-white/55">
-                        뜻: {w.q.meaningKr} · 발음(한글): {w.q.pronKr}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="mt-6 text-xs text-white/45 leading-relaxed">
-              오프라인 사용: 한 번이라도 접속(로딩)하면 캐시가 잡혀서 비행기 모드에서도
-              열릴 확률이 높습니다. 설치(PWA)까지 하면 더 안정적이에요.
-            </div>
-          </div>
-        )}
-
-        <footer className="mt-10 text-center text-xs text-white/35">
-          © Thai quiz 2 · offline-first PWA
-        </footer>
+      {/* Desktop hint */}
+      <div className="pointer-events-none fixed bottom-4 left-1/2 hidden -translate-x-1/2 rounded-full bg-white/5 px-4 py-2 text-xs text-white/35 md:block">
+        모바일 전용 UI (가운데 프레임)
       </div>
     </div>
   );
