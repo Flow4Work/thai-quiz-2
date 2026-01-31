@@ -176,9 +176,7 @@ function HomeScreen({
         ))}
       </div>
 
-      <div className="mt-8 text-center text-[10px] tracking-[0.22em] text-white/25">
-        BUILT WITH TOSS STYLE UX
-      </div>
+      {/* footer text removed */}
     </div>
   );
 }
@@ -395,9 +393,9 @@ function DoneScreen({ category, onHome }: { category: Category; onHome: () => vo
 
 export default function App() {
   const [completed, setCompleted] = useState<Record<CategoryId, boolean>>({
-    feelings: false,
-    food: false,
-    manners: false,
+    flirt_words: false,
+    flirt_lines: false,
+    reactions: false,
   });
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
 
@@ -464,10 +462,7 @@ export default function App() {
         ) : null}
       </div>
 
-      {/* Desktop hint */}
-      <div className="pointer-events-none fixed bottom-4 left-1/2 hidden -translate-x-1/2 rounded-full bg-white/5 px-4 py-2 text-xs text-white/35 md:block">
-        모바일 전용 UI (가운데 프레임)
-      </div>
+      {/* desktop hint removed */}
     </div>
   );
 }

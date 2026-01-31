@@ -1,168 +1,86 @@
-export type CategoryId = 'feelings' | 'food' | 'manners';
+export type CategoryId = 'flirt_words' | 'flirt_lines' | 'reactions';
 
-export type WordItem = {
+export type ContentItem = {
   id: string;
   emoji: string;
-  /** user-friendly Korean pronunciation (hangul) */
+  /** Korean-friendly pronunciation (hangul) */
   pronKr: string;
-  /** meaning shown to user */
+  /** Korean meaning shown to the user */
   meaningKr: string;
-  /** optional Thai script (tiny / hint) */
+  /** Optional Thai script (user prefers pronunciation-only; keep empty by default) */
   thai?: string;
-  /** simple romanization hint (tiny) */
-  roman?: string;
-};
-
-export type SentenceItem = {
-  id: string;
-  pronKr: string;
-  meaningKr: string;
+  /** Optional romanization (tiny hint) */
   roman?: string;
 };
 
 export type Category = {
   id: CategoryId;
-  emoji: string;
   title: string;
   subtitle: string;
-  words: WordItem[];
-  sentences: SentenceItem[];
+  emoji: string;
+  items: ContentItem[];
 };
 
-// NOTE: This is a starter dataset. You can add/replace items freely.
+/**
+ * NOTE
+ * - The user wants pronunciation-focused learning (hangul/roman), not Thai letters.
+ * - Thai script is intentionally kept empty for these items.
+ */
 export const CATEGORIES: Category[] = [
   {
-    id: 'feelings',
-    emoji: '❤️',
-    title: '달콤한 감정 표현',
-    subtitle: '좋아하는 마음을 태국어로 전해볼까요? 💕',
-    words: [
-      {
-        id: 'rak',
-        emoji: '❤️',
-        pronKr: '락',
-        meaningKr: '사랑하다, 좋아하다',
-        thai: 'รัก',
-        roman: 'rak',
-      },
-      {
-        id: 'kid-teung',
-        emoji: '🥺',
-        pronKr: '낏뜽',
-        meaningKr: '보고싶다',
-        thai: 'คิดถึง',
-        roman: 'kid teung',
-      },
-      {
-        id: 'ter-suay-mak',
-        emoji: '✨',
-        pronKr: '터 쑤아이 막',
-        meaningKr: '너 진짜 예쁘다',
-        thai: 'เธอสวยมาก',
-        roman: 'ter suay maak',
-      },
-      {
-        id: 'na-rak',
-        emoji: '😊',
-        pronKr: '나락',
-        meaningKr: '귀엽다',
-        thai: 'น่ารัก',
-        roman: 'na rak',
-      },
-    ],
-    sentences: [
-      {
-        id: 'chan-rak-ter',
-        pronKr: '찬 락 터',
-        meaningKr: '나는 너를 사랑해',
-        roman: 'chan rak ter',
-      },
-      {
-        id: 'kid-teung-mak',
-        pronKr: '낏뜽 막',
-        meaningKr: '너무 보고싶어',
-        roman: 'kid teung maak',
-      },
-      {
-        id: 'ter-suay-mak-sent',
-        pronKr: '터 쑤아이 막',
-        meaningKr: '너 진짜 예쁘다',
-        roman: 'ter suay maak',
-      },
+    id: 'flirt_words',
+    title: '플러팅 핵심 단어',
+    subtitle: '좋아/싫어/끌려… 감정 단어부터 빠르게',
+    emoji: '💘',
+    items: [
+      // ---- Subject / verb blocks (minimal) ----
+      { id: 'subj_i', emoji: '🙋', pronKr: '찬', meaningKr: '나(=I)', thai: '', roman: 'chan' },
+      { id: 'subj_you', emoji: '👉', pronKr: '터', meaningKr: '너(=you)', thai: '', roman: 'ter' },
+      { id: 'verb_like', emoji: '❤️', pronKr: '촙', meaningKr: '좋아(좋아하다)', thai: '', roman: 'chop' },
+      { id: 'verb_not_like', emoji: '🙅', pronKr: '마이 촙', meaningKr: '싫어(=안 좋아해)', thai: '', roman: 'mai chop' },
+      { id: 'why', emoji: '❓', pronKr: '탐마이', meaningKr: '왜?', thai: '', roman: 'tham-mai' },
+
+      // ---- Feelings / adjectives ----
+      { id: 'attracted', emoji: '🧲', pronKr: '툭 짜이', meaningKr: '끌려 / 취향저격', thai: '', roman: 'thuuk jai' },
+      { id: 'pretty', emoji: '✨', pronKr: '쑤아이', meaningKr: '예쁘다', thai: '', roman: 'suay' },
+      { id: 'sexy', emoji: '🔥', pronKr: '섹씨', meaningKr: '섹시하다', thai: '', roman: 'sexy' },
+      { id: 'flutter', emoji: '💓', pronKr: '뜬뗀', meaningKr: '설렌다 / 두근거린다', thai: '', roman: 'tuen ten' },
+
+      // jealousy (question & statement)
+      { id: 'jealous_q', emoji: '😏', pronKr: '흥 러?', meaningKr: '질투해?', thai: '', roman: 'heung ...' },
+      { id: 'jealous_s', emoji: '😤', pronKr: '찬 흥 나', meaningKr: '질투난다', thai: '', roman: 'chan heung na' },
+
+      // 기대된다 (keep simple: excited / looking forward)
+      { id: 'looking_forward', emoji: '⏳', pronKr: '뜬뗀', meaningKr: '기대된다(=설레/기대돼)', thai: '', roman: 'tuen ten' },
     ],
   },
   {
-    id: 'food',
-    emoji: '😋',
-    title: '일상의 맛 (음식)',
-    subtitle: '태국 여행의 핵심! 맛 표현 정복하기 🍹',
-    words: [
-      {
-        id: 'aroi',
-        emoji: '🍜',
-        pronKr: '아러이',
-        meaningKr: '맛있다',
-        thai: 'อร่อย',
-        roman: 'aroi',
-      },
-      {
-        id: 'phed',
-        emoji: '🌶️',
-        pronKr: '펫',
-        meaningKr: '맵다',
-        thai: 'เผ็ด',
-        roman: 'phed',
-      },
-      {
-        id: 'mai-phed',
-        emoji: '🧊',
-        pronKr: '마이 펫',
-        meaningKr: '안 맵게',
-        thai: 'ไม่เผ็ด',
-        roman: 'mai phed',
-      },
-    ],
-    sentences: [
-      { id: 'ni-aroi', pronKr: '니 아러이', meaningKr: '이거 맛있다', roman: 'nii aroi' },
-      { id: 'khaw-mai-phed', pronKr: '카오 마이 펫', meaningKr: '안 맵게 해주세요', roman: 'khaw mai phed' },
-      { id: 'ao-nam', pronKr: '아오 남', meaningKr: '물 주세요', roman: 'ao naam' },
+    id: 'flirt_lines',
+    title: '같이 있을 때 한마디',
+    subtitle: '짧고 바로 써먹는 문장만',
+    emoji: '🫶',
+    items: [
+      { id: 'next_to_you_good', emoji: '🙂', pronKr: '유 캉 캉 터 래우 디 짱', meaningKr: '너 옆에 있으니까 좋다', thai: '', roman: 'yuu khaang-khaang ter laew dii jang' },
+      { id: 'your_smile_good', emoji: '😊', pronKr: '터 임 래우 디', meaningKr: '너 웃는 거 좋다', thai: '', roman: 'ter yim laew dii' },
+      { id: 'i_like_your_smile', emoji: '😁', pronKr: '촙 웰라 터 임', meaningKr: '너 웃는 거 좋아', thai: '', roman: 'chop welaa ter yim' },
+      { id: 'with_you_good', emoji: '🤍', pronKr: '유 갑 터 래우 디', meaningKr: '너랑 있으면 좋아', thai: '', roman: 'yuu gap ter laew dii' },
+
+      { id: 'want_hug', emoji: '🤗', pronKr: '약 껏', meaningKr: '안고 싶다', thai: '', roman: 'yaak gɔ̀ɔt' },
+      { id: 'want_kiss', emoji: '💋', pronKr: '약 쭙', meaningKr: '키스하고 싶다', thai: '', roman: 'yaak juup' },
+      { id: 'cant_resist', emoji: '🫠', pronKr: '유 끌라이 터 래우 찬 옫 마이 다이', meaningKr: '너 옆에 있으면 참을 수 없어', thai: '', roman: 'yuu glai ter laew chan ot mai dai' },
+      { id: 'danger_vibe', emoji: '⚠️', pronKr: '완니 반야깟 안뜨라이 나?', meaningKr: '오늘 분위기 위험한데?', thai: '', roman: 'wan-nii banyaagaat an-traai na?' },
     ],
   },
   {
-    id: 'manners',
-    emoji: '🙏',
-    title: '기본 인사와 매너',
-    subtitle: '어디서나 환영받는 예의 바른 첫인사 🙏',
-    words: [
-      {
-        id: 'khop-khun',
-        emoji: '🙏',
-        pronKr: '콥쿤',
-        meaningKr: '고마워요',
-        thai: 'ขอบคุณ',
-        roman: 'khop khun',
-      },
-      {
-        id: 'khor-thot',
-        emoji: '🙇',
-        pronKr: '커 톳',
-        meaningKr: '미안해요/실례해요',
-        thai: 'ขอโทษ',
-        roman: 'khor thot',
-      },
-      {
-        id: 'tao-rai',
-        emoji: '💸',
-        pronKr: '타오라이',
-        meaningKr: '얼마예요?',
-        thai: 'เท่าไหร่',
-        roman: 'tao rai',
-      },
-    ],
-    sentences: [
-      { id: 'khop-khun-kap', pronKr: '콥쿤 캅', meaningKr: '감사합니다(남성)', roman: 'khop khun khap' },
-      { id: 'khor-thot-na', pronKr: '커 톳 나', meaningKr: '죄송해요', roman: 'khor thot na' },
-      { id: 'ni-tao-rai', pronKr: '니 타오라이', meaningKr: '이거 얼마예요?', roman: 'nii tao rai' },
+    id: 'reactions',
+    title: '감정 리액션',
+    subtitle: '짧게 내 감정만 바로 꺼내기 (중요)',
+    emoji: '🎭',
+    items: [
+      { id: 'happy', emoji: '😄', pronKr: '찬 디짜이!', meaningKr: '나 기뻐!', thai: '', roman: 'chan dii-jai' },
+      { id: 'lol', emoji: '🤣', pronKr: '찬 캄 러이!', meaningKr: '나 웃겨!', thai: '', roman: 'chan kham loei' },
+      { id: 'excited', emoji: '😳', pronKr: '뜬뗀…', meaningKr: '설렌다.', thai: '', roman: 'tuen ten' },
+      { id: 'shy', emoji: '🙈', pronKr: '아이…', meaningKr: '부끄럽다.', thai: '', roman: 'ai' },
     ],
   },
 ];
