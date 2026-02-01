@@ -16,6 +16,53 @@ function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
+
+type Part = { tokenKr: string; meaningKr: string; roman?: string };
+
+function Breakdown({
+  parts,
+  defaultOpen = true,
+}: {
+  parts: Part[];
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = React.useState(defaultOpen);
+  if (!parts || parts.length === 0) return null;
+
+  return (
+    <div className="mt-6 text-left">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full rounded-2xl bg-white/[0.04] border border-white/10 px-4 py-3 text-sm font-semibold text-white/70 hover:bg-white/[0.06]"
+      >
+        <div className="flex items-center justify-between">
+          <span>단어 분해</span>
+          <span className="text-white/40">{open ? '숨기기' : '보기'}</span>
+        </div>
+      </button>
+
+      {open ? (
+        <div className="mt-3 rounded-2xl bg-white/[0.04] border border-white/10 p-4">
+          <div className="flex flex-wrap gap-2">
+            {parts.map((p, i) => (
+              <div
+                key={i}
+                className="rounded-2xl bg-white/[0.06] border border-white/10 px-3 py-2"
+              >
+                <div className="text-sm font-extrabold text-white">{p.tokenKr}</div>
+                <div className="mt-0.5 text-xs font-semibold text-white/60">{p.meaningKr}</div>
+                {p.roman ? <div className="mt-0.5 text-[11px] text-white/30">{p.roman}</div> : null}
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 text-xs text-white/30">
+            👉 이 블록들을 바꿔 끼우면 다른 문장도 만들 수 있어요.
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
 function useCategory(categoryId: CategoryId): Category {
   const cat = CATEGORIES.find((c) => c.id === categoryId);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -211,6 +258,8 @@ function WordScreen({
           {word.roman ? <span className="">{word.roman}</span> : null}
         </div>
 
+        {word.parts && word.parts.length ? <Breakdown parts={word.parts} defaultOpen={true} /> : null}
+
         <div className="mt-10">
           <PrimaryButton onClick={onNext}>{index + 1 < total ? '다음 단어' : '한 문장 더!'}</PrimaryButton>
         </div>
@@ -246,6 +295,7 @@ function SentenceScreen({
               <div className="text-lg font-extrabold text-[#60A5FA]">{s.pronKr}</div>
               <div className="mt-1 text-base font-semibold text-white">{s.meaningKr}</div>
               {s.roman ? <div className="mt-2 text-xs text-white/30">{s.roman}</div> : null}
+              {s.parts && s.parts.length ? <Breakdown parts={s.parts} defaultOpen={false} /> : null}
             </div>
           ))}
         </div>
