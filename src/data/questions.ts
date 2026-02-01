@@ -1,6 +1,3 @@
-import type { Category, ContentItem } from './content';
-import { CATEGORIES } from './content';
-
 export type Question = {
   id: string;
   meaningKr: string;
@@ -10,17 +7,60 @@ export type Question = {
   tags: string[];
 };
 
-function toQuestion(it: ContentItem, cat: Category): Question {
-  return {
-    id: it.id,
-    meaningKr: it.meaningKr,
-    thai: it.thai ?? '',
-    roman: it.roman ?? '',
-    pronKr: it.pronKr,
-    tags: [cat.id],
-  };
-}
-
-export const QUESTIONS: Question[] = CATEGORIES.flatMap((cat) =>
-  cat.items.map((it) => toQuestion(it, cat))
-);
+export const QUESTIONS: Question[] = [
+  { id: "1", meaningKr: "뭐예요?", thai: "อะไร", roman: "arai", pronKr: "아라이", tags: ["general"] },
+  { id: "2", meaningKr: "이거 얼마예요?", thai: "อันนี้เท่าไหร่", roman: "an-nii thao-rai", pronKr: "안니 타오라이", tags: ["shopping"] },
+  { id: "3", meaningKr: "너무 비싸요", thai: "แพงไป", roman: "phaeng-pai", pronKr: "팽 빠이", tags: ["general"] },
+  { id: "4", meaningKr: "좀 깎아주세요", thai: "ลดหน่อยได้ไหม", roman: "lot noi dai mai", pronKr: "롯 너이 다이 마이", tags: ["shopping"] },
+  { id: "5", meaningKr: "화장실 어디예요?", thai: "ห้องน้ำอยู่ไหน", roman: "hong-nam yu nai", pronKr: "홍남 유 나이", tags: ["general"] },
+  { id: "6", meaningKr: "도와주세요", thai: "ช่วยด้วย", roman: "chuay-duay", pronKr: "추어이 두어이", tags: ["general"] },
+  { id: "7", meaningKr: "괜찮아요", thai: "ไม่เป็นไร", roman: "mai pen rai", pronKr: "마이 펜 라이", tags: ["general"] },
+  { id: "8", meaningKr: "조금만", thai: "นิดหน่อย", roman: "nit noi", pronKr: "닛 너이", tags: ["general"] },
+  { id: "9", meaningKr: "천천히 말해줘", thai: "พูดช้าๆ", roman: "phut cha-cha", pronKr: "풋 차차", tags: ["general"] },
+  { id: "10", meaningKr: "다시 한 번", thai: "อีกครั้ง", roman: "ik khrang", pronKr: "잇 크랑", tags: ["general"] },
+  { id: "11", meaningKr: "모르겠어요", thai: "ไม่รู้", roman: "mai ru", pronKr: "마이 루", tags: ["general"] },
+  { id: "12", meaningKr: "알겠어요", thai: "เข้าใจ", roman: "khao-jai", pronKr: "카오짜이", tags: ["general"] },
+  { id: "13", meaningKr: "사진 찍어도 돼요?", thai: "ถ่ายรูปได้ไหม", roman: "thai rup dai mai", pronKr: "타이 룹 다이 마이", tags: ["general"] },
+  { id: "14", meaningKr: "메뉴 주세요", thai: "ขอเมนูหน่อย", roman: "kho menu noi", pronKr: "커 메뉴 너이", tags: ["general"] },
+  { id: "15", meaningKr: "물 주세요", thai: "ขอน้ำหน่อย", roman: "kho nam noi", pronKr: "커 남 너이", tags: ["general"] },
+  { id: "16", meaningKr: "계산할게요", thai: "คิดเงินด้วย", roman: "khit ngoen duay", pronKr: "킷 느은 두어이", tags: ["general"] },
+  { id: "17", meaningKr: "맛있어요", thai: "อร่อย", roman: "aroi", pronKr: "아러이", tags: ["general"] },
+  { id: "18", meaningKr: "진짜 맛있어요", thai: "อร่อยมาก", roman: "aroi mak", pronKr: "아러이 막", tags: ["general"] },
+  { id: "19", meaningKr: "매워요", thai: "เผ็ด", roman: "phet", pronKr: "펫", tags: ["general"] },
+  { id: "20", meaningKr: "덜 맵게 해주세요", thai: "เผ็ดน้อย", roman: "phet noi", pronKr: "펫 너이", tags: ["general"] },
+  { id: "21", meaningKr: "어디 가요?", thai: "ไปไหน", roman: "pai nai", pronKr: "빠이 나이", tags: ["general"] },
+  { id: "22", meaningKr: "같이 가요", thai: "ไปด้วยกัน", roman: "pai duay-kan", pronKr: "빠이 두어이 깐", tags: ["general"] },
+  { id: "23", meaningKr: "여기요", thai: "ที่นี่", roman: "thi-nii", pronKr: "티니", tags: ["general"] },
+  { id: "24", meaningKr: "저기요(부를 때)", thai: "ขอโทษครับ/ค่ะ", roman: "kho thot khrap/kha", pronKr: "커 톳 크랍/카", tags: ["general"] },
+  { id: "25", meaningKr: "괜찮죠?", thai: "โอเคไหม", roman: "oke mai", pronKr: "โอเค 마이", tags: ["general"] },
+  { id: "26", meaningKr: "지금", thai: "ตอนนี้", roman: "ton-nii", pronKr: "떤니", tags: ["general"] },
+  { id: "27", meaningKr: "나중에", thai: "เดี๋ยว", roman: "diao", pronKr: "디여우", tags: ["general"] },
+  { id: "28", meaningKr: "기다려요", thai: "รอ", roman: "ro", pronKr: "러", tags: ["general"] },
+  { id: "29", meaningKr: "몇 시예요?", thai: "กี่โมง", roman: "gii mong", pronKr: "끼 몽", tags: ["general"] },
+  { id: "30", meaningKr: "오늘", thai: "วันนี้", roman: "wan-nii", pronKr: "완니", tags: ["general"] },
+  { id: "31", meaningKr: "내일", thai: "พรุ่งนี้", roman: "phrung-nii", pronKr: "프룽니", tags: ["general"] },
+  { id: "32", meaningKr: "여기서 내려요", thai: "ลงที่นี่", roman: "long thi-nii", pronKr: "롱 티니", tags: ["general"] },
+  { id: "33", meaningKr: "공항", thai: "สนามบิน", roman: "sa-nam-bin", pronKr: "싸남빈", tags: ["transport"] },
+  { id: "34", meaningKr: "택시", thai: "แท็กซี่", roman: "taek-sii", pronKr: "택씨", tags: ["transport"] },
+  { id: "35", meaningKr: "호텔", thai: "โรงแรม", roman: "rong-raem", pronKr: "롱램", tags: ["hotel"] },
+  { id: "36", meaningKr: "방 있어요?", thai: "มีห้องไหม", roman: "mii hong mai", pronKr: "미 홍 마이", tags: ["hotel"] },
+  { id: "37", meaningKr: "체크인 할게요", thai: "เช็คอิน", roman: "chek-in", pronKr: "첵인", tags: ["hotel"] },
+  { id: "38", meaningKr: "와이파이 있어요?", thai: "มีไวไฟไหม", roman: "mii wai-fai mai", pronKr: "미 와이파이 마이", tags: ["hotel"] },
+  { id: "39", meaningKr: "비밀번호 뭐예요?", thai: "รหัสอะไร", roman: "ra-hat arai", pronKr: "라핫 아라이", tags: ["general"] },
+  { id: "40", meaningKr: "예뻐요", thai: "สวย", roman: "suay", pronKr: "쑤아이", tags: ["flirt"] },
+  { id: "41", meaningKr: "진짜 예뻐요", thai: "สวยจริง", roman: "suay jing", pronKr: "쑤아이 찡", tags: ["flirt"] },
+  { id: "42", meaningKr: "귀여워요", thai: "น่ารัก", roman: "na-rak", pronKr: "나락", tags: ["flirt"] },
+  { id: "43", meaningKr: "너무 귀여워요", thai: "น่ารักมาก", roman: "na-rak mak", pronKr: "나락 막", tags: ["flirt"] },
+  { id: "44", meaningKr: "이름이 뭐예요?", thai: "ชื่ออะไร", roman: "chue arai", pronKr: "추 아라이", tags: ["general"] },
+  { id: "45", meaningKr: "만나서 반가워요", thai: "ยินดีที่ได้รู้จัก", roman: "yin-dii thi dai ru-jak", pronKr: "인디 티 다이 루짝", tags: ["general"] },
+  { id: "46", meaningKr: "몇 살이에요?", thai: "อายุเท่าไหร่", roman: "a-yu thao-rai", pronKr: "아유 타오라이", tags: ["general"] },
+  { id: "47", meaningKr: "한국 사람이에요", thai: "คนเกาหลี", roman: "khon gaolii", pronKr: "콘 까오리", tags: ["general"] },
+  { id: "48", meaningKr: "전화번호 있어요?", thai: "มีเบอร์ไหม", roman: "mii boe mai", pronKr: "미 버 마이", tags: ["general"] },
+  { id: "49", meaningKr: "라인 할래요?", thai: "เล่นไลน์ไหม", roman: "len line mai", pronKr: "렌 라인 마이", tags: ["general"] },
+  { id: "50", meaningKr: "인스타 해요?", thai: "เล่นอินสตาไหม", roman: "len insta mai", pronKr: "렌 인스타 마이", tags: ["general"] },
+  { id: "51", meaningKr: "한 잔 할래요?", thai: "ดื่มไหม", roman: "duem mai", pronKr: "듬 마이", tags: ["general"] },
+  { id: "52", meaningKr: "재밌어요", thai: "สนุก", roman: "sa-nuk", pronKr: "사눅", tags: ["general"] },
+  { id: "53", meaningKr: "너무 재밌어요", thai: "สนุกมาก", roman: "sa-nuk mak", pronKr: "사눅 막", tags: ["general"] },
+  { id: "54", meaningKr: "좋아요", thai: "ดี", roman: "dii", pronKr: "디", tags: ["general"] },
+  { id: "55", meaningKr: "사랑해(가볍게)", thai: "รักนะ", roman: "rak na", pronKr: "락 나", tags: ["flirt"] },
+];
